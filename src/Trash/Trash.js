@@ -1,128 +1,70 @@
-import React, { useEffect, useState, useRef } from 'react';
-import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import Toolbar from '@mui/material/Toolbar';
-import { Typography } from '@mui/material';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import FolderTwoToneIcon from '@mui/icons-material/FolderTwoTone';
-import { useNavigate } from 'react-router-dom';
-import KeyboardArrowRightTwoToneIcon from '@mui/icons-material/KeyboardArrowRightTwoTone';
+import React, { useEffect, useState, useRef } from 'react';
+import Paper from '@mui/material/Paper';
+import Toolbar from '@mui/material/Toolbar';
 import AccountCircleTwoToneIcon from '@mui/icons-material/AccountCircleTwoTone';
 import AppBar from '@mui/material/AppBar';
-import DriveFileRenameOutlineTwoToneIcon from '@mui/icons-material/DriveFileRenameOutlineTwoTone';
-import DownloadTwoToneIcon from '@mui/icons-material/DownloadTwoTone';
-import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
-import StarRateTwoToneIcon from '@mui/icons-material/StarRateTwoTone';
-import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
 import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
-import FolderRenameForm from '../RenameForm/RenameForm';
+import RestorePageTwoToneIcon from '@mui/icons-material/RestorePageTwoTone';
+import DeleteForeverTwoToneIcon from '@mui/icons-material/DeleteForeverTwoTone';
 
-// name, owner, last-modified, file-size columns
+// name, owner, trashed-date, file-size, original locations columns
 const columns = [
-  { id: 'name', label: 'Name', minWidth: 450 },
-  {
-    id: 'owner',
-    label: 'Owner',
-    minWidth: 170,
-    align: 'left',
-    format: (value) => value.toLocaleString('en-US'),
-  },
-  {
-    id: 'last-modified',
-    label: 'Last modified',
-    minWidth: 170,
-    align: 'left',
-    format: (value) => value.toLocaleString('en-US'),
-  },
-  {
-    id: 'file-size',
-    label: 'File size',
-    minWidth: 170,
-    align: 'left',
-    format: (value) => value.toLocaleString('en-US'),
-  }
-];
+    { id: 'name', label: 'Name', minWidth: 450 },
+    {
+      id: 'owner',
+      label: 'Owner',
+      minWidth: 170,
+      align: 'left',
+      format: (value) => value.toLocaleString('en-US'),
+    },
+    {
+      id: 'trashed-date',
+      label: 'Trashed Date',
+      minWidth: 170,
+      align: 'left',
+      format: (value) => value.toLocaleString('en-US'),
+    },
+    {
+      id: 'file-size',
+      label: 'File size',
+      minWidth: 170,
+      align: 'left',
+      format: (value) => value.toLocaleString('en-US'),
+    },
+    {
+      id: 'original-location',
+      label: 'Original Location',
+      minWidth: 170,
+      align: 'left',
+      format: (value) => value.toLocaleString('en-US'),
+    }
+  ];
 
-export default function MyFileOrbis(props) 
-{
-  const { rootFolderId, setRootFolderId, mainFolderId, createdFolder } = props;
-  // folders and files of user's main folder
-  const [subFolders, setSubFolders] = useState([]);
-  const [subFiles, setSubFiles] = useState([]);
-  // constant text like "my drive"
-  const mainFolderName = "My FileOrbis";
-  // each folder path
-  const [path, setPath] = useState("");  
-  // use navigate
-  const navigate = useNavigate();
+
+export default function Trash(props) {
+
+  // trash folders and files of the user
+  const [trashFolders, setTrashFolders] = useState([]);
+  const [trashFiles, setTrashFiles] = useState([]);  
   // selectedRow: represents selected row id
   const [selectedRow, setSelectedRow] = useState(null);
   // clicked: checks whether the row is selected or not
   const [clicked, setClicked] = useState(false);
-  // isEditing: checks that editing form is open or closed
-  const [isEditing, setIsEditing] = useState(false);
   // folderOrFile: checks that it is file or folder
   const [folderOrFile, setfolderOrFile] = useState(null);
-  // renamed: when the file&folder name changed, it is changing to bring current file&folder of the root folder
-  const [renamed, setRenamed] = useState(false); 
 
-  // when the user double clicks the folder row, it will work
-  // update root folder id, path of the selected folder and selected row id
-  // navigate to /home/ + {rootFolderId}
-  const handleDoubleClickFolder = (id, path) => {
-      setRootFolderId(id);
-      setPath(path);
-      setSelectedRow(null);
-      navigate('/My FileOrbis/' + id);
-  }
-
-  // when the user clicks the main folder "my fileorbis", it will work
-  // update rootFolderId = mainFolderId, path = "", clicked = false
-  const handleClickMainFolder = () => {
-      setRootFolderId(mainFolderId);
-      setPath("");
-      setClicked(false);
-      navigate('/My FileOrbis/' + mainFolderId);
-  }
-  
-  // when the user clicks the path at the top (breadcrumbs), it will work
-  const handleClickPath = (e) => {
-    // remove last character of the path, for exp; "abc/def" instead of "abc/def/"
-    const query = e.target.id.substring(0, e.target.id.length-1);
-    // get folder id with folder path
-    fetch('https://localhost:7043/folders/path/?path=' + query)
-    .then((res) => {
-      if (res.status === 204) {
-        // Handle 204 No Content response
-        return Promise.resolve(null);
-      } else {
-        return res.json();
-      }
-    })
-    .then(
-      (result) => {
-        // update rootFolderId = id, path = query, clicked = false
-        setRootFolderId(result.id);
-        setPath(query);
-        setClicked(false);
-        // navigate to /home/ + {rootFolderId}
-        navigate('/My FileOrbis/' + result.id);
-      },
-      (error) => {
-           console.log(error);
-      }
-    )
-  }
-
-  const handleSentToTrash = () => {
-    // sent the file or folder with id to trash  
+  const handleRestoreClick = () => {
+    // delete forever the file or folder
     if(folderOrFile == 0){
-      fetch('https://localhost:7043/folders/trash/' + selectedRow, {
+      fetch('https://localhost:7043/folders/restore/' + selectedRow, {
         method: 'PUT'
       })
       .then((res) => {
@@ -137,8 +79,8 @@ export default function MyFileOrbis(props)
         (result) => {
           setSelectedRow(null);
           setClicked(false);
-          alert("folder succesfully trashed");
-          getFoldersAndFiles();
+          alert("succesfully restored!");
+          getTrash();
         },
         (error) => {
              console.log(error);
@@ -146,7 +88,7 @@ export default function MyFileOrbis(props)
       )
     } 
     else if(folderOrFile == 1) { 
-      fetch('https://localhost:7043/files/trash/' + selectedRow, {
+      fetch('https://localhost:7043/files/restore/' + selectedRow, {
         method: 'PUT'
       })
       .then((res) => {
@@ -161,8 +103,8 @@ export default function MyFileOrbis(props)
         (result) => {
           setSelectedRow(null);
           setClicked(false);
-          alert("file succesfully trashed");
-          getFoldersAndFiles();
+          alert("succesfully restored!");
+          getTrash();
         },
         (error) => {
              console.log(error);
@@ -171,91 +113,61 @@ export default function MyFileOrbis(props)
     }
   }
 
-  const handleDownload = () => {
-
-    if(folderOrFile == 1)
-    {
-      var fileName = "";
-
-      fetch('https://localhost:7043/files/name/' + selectedRow)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Server error");
+  const handleDeleteForeverClick = () => {
+    // delete forever the file or folder
+    if(folderOrFile == 0){
+      fetch('https://localhost:7043/folders/' + selectedRow, {
+        method: 'DELETE'
+      })
+      .then((res) => {
+        if (res.status === 204) {
+          // Handle 204 No Content response
+          return Promise.resolve(null);
+        } else {
+          return res.json();
         }
-        return response.text();
       })
-      .then(data => {
-        fileName = data;
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  
-      fetch(`https://localhost:7043/files/` + selectedRow)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Server error!');
-          }
-          return response.blob();
-        })
-        .then(blob => {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', fileName);
-          document.body.appendChild(link);
-          link.click();
-          alert("file downloaded successfully!");
-        })
-        .catch(error => {
-          console.error(error);
-        });
+      .then(
+        (result) => {
+          setSelectedRow(null);
+          setClicked(false);
+          alert("folder succesfully removed!");
+          getTrash();
+        },
+        (error) => {
+             console.log(error);
+        }
+      )
     } 
-    else if(folderOrFile == 0)
-    {      
-      var folderName = "";
-
-      fetch('https://localhost:7043/folders/name/' + selectedRow)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Server error");
+    else if(folderOrFile == 1) { 
+      fetch('https://localhost:7043/files/' + selectedRow, {
+        method: 'DELETE'
+      })
+      .then((res) => {
+        if (res.status === 204) {
+          // Handle 204 No Content response
+          return Promise.resolve(null);
+        } else {
+          return res.json();
         }
-        return response.text();
       })
-      .then(data => {
-        folderName = data;
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  
-      const endpointUrl = 'https://localhost:7043/folders/zip/'+ selectedRow;
+      .then(
+        (result) => {
+          setSelectedRow(null);
+          setClicked(false);
+          alert("file succesfully removed!");
+          getTrash();
+        },
+        (error) => {
+             console.log(error);
+        }
+      )
+    }
+  }
 
-      fetch(endpointUrl)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Server error');
-          }
-          return response.blob();
-        })
-        .then(blob => {
-          const url = window.URL.createObjectURL(new Blob([blob]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', folderName + ".zip"); // İndirilen dosyanın adı
-          document.body.appendChild(link);
-          link.click();
-          link.parentNode.removeChild(link);
-        })
-        .catch(error => {
-          console.error(error);
-        });
-      }
-  };
-  
-
-  const getFoldersAndFiles = () => {
-    fetch('https://localhost:7043/folders/' + rootFolderId)
+  const getTrash = () => {
+    // load trash folders
+    fetch('https://localhost:7043/folders/trash')
     .then((res) => {
       if (res.status === 204) {
         // Handle 204 No Content response
@@ -264,47 +176,41 @@ export default function MyFileOrbis(props)
         return res.json();
       }
     })
-    .then(
+  .then(
       (result) => {
-        // update the folders and files
-        setSubFolders(result.subFolders);
-        setSubFiles(result.subFiles);
+          setTrashFolders(result);
       },
       (error) => {
         console.log(error);
       }
-    );
-  }
- 
-  // when rootFolderId updated and first render completed, it will work
-  useEffect(() => {
-    getFoldersAndFiles();
-    if(rootFolderId == mainFolderId){
-      setPath("");
+  );
+  // load trash files
+  fetch('https://localhost:7043/files/trash')
+  .then((res) => {
+    if (res.status === 204) {
+      // Handle 204 No Content response
+      return Promise.resolve(null);
+    } else {
+      return res.json();
     }
-  }, [rootFolderId, renamed, createdFolder])
+  })
+  .then(
+    (result) => {
+      setTrashFiles(result);
+    },
+    (error) => {
+      console.log(error);
+    }
+  );
+  }
 
+  // trash folders and files will be uploaded when the trash component is called
+  useEffect(() => {
+    getTrash();
+  }, [])
+  
   return (
     <div>
-      {/* constant "my fileorbis" header path */}
-      <Typography onClick={handleClickMainFolder} sx={{fontSize: 20, display: "inline", cursor: 'pointer'}}>
-        {mainFolderName} 
-      </Typography>
-      <KeyboardArrowRightTwoToneIcon/>
-      {/* create each path (breadcrumbs) */}
-      {path.split("/").map((p, index) => {
-        const eachFolderPath = path.split("/").slice(0, index+1).join("/") + "/";
-        if(index !== 0){
-            return (
-                <div style={{display: 'inline-block'}}>
-                <Typography id={eachFolderPath} onClick={handleClickPath} sx={{ fontSize: 20, display: "inline", cursor: 'pointer'}}>
-                  {p} 
-                </Typography>
-                <KeyboardArrowRightTwoToneIcon/>
-                </div>
-            )
-        }
-      })}
       {/* 
         when the user clicks the any row, this bar that includes folder&file operations will be displayed to the user
         if the user does not select any row, "no selected item" will be displayed 
@@ -339,18 +245,13 @@ export default function MyFileOrbis(props)
             }}
           />  
           <span style={{cursor: 'default'}}>1 selected</span>
-          <DriveFileRenameOutlineTwoToneIcon 
+          <RestorePageTwoToneIcon 
             sx={{marginLeft:'50px', marginRight: '25px', cursor:'pointer' }} 
-            onClick={()=>{ setIsEditing(true); }}
+            onClick={handleRestoreClick}
           />
-          <DownloadTwoToneIcon 
-            sx={{ marginRight: '25px', cursor:'pointer' }} 
-            onClick={handleDownload}
-          />
-          <StarRateTwoToneIcon sx={{ marginRight: '25px', cursor:'pointer' }} />
-          <DeleteTwoToneIcon 
+          <DeleteForeverTwoToneIcon 
             sx={{cursor:'pointer'}} 
-            onClick={handleSentToTrash}
+            onClick={handleDeleteForeverClick}
           />
         </Toolbar> : 
         // constant "no selected item" text 
@@ -358,50 +259,34 @@ export default function MyFileOrbis(props)
           <span style={{cursor: 'default'}}>no selected item</span>
         </Toolbar>}
       </AppBar>
-      {/* if the editing form (rename form) is open, it will work*/}
-      {isEditing ? 
-        <FolderRenameForm 
-          folderOrFile={folderOrFile}
-          id={selectedRow}
-          setIsEditing={setIsEditing}
-          renamed={renamed}
-          setRenamed={setRenamed}
-        /> : null
-      }
       <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: "25px" }}>
         <TableContainer sx={{ maxHeight: 480 }}>
-          <Table stickyHeader aria-label="sticky table">
+        <Table stickyHeader aria-label="sticky table">
             <TableHead>
-              <TableRow>
+            <TableRow>
                 {/* create the columns */}
                 {columns.map((column) => (
-                  <TableCell
+                <TableCell
                     key={column.id}
                     align={column.align}
                     style={{ minWidth: column.minWidth }}
                     sx={{fontWeight: 'bold'}}
-                  >
+                >
                     {column.label}
-                  </TableCell>
+                </TableCell>
                 ))}
-              </TableRow>
+            </TableRow>
             </TableHead>
             <TableBody>
-              {/* create the folders */}
-              {subFolders.map((folder) => {
+            {/* create the folders */}
+            {trashFolders.map((folder) => {
                 return (
-                  <TableRow 
+                <TableRow 
                     hover 
                     role="checkbox" 
                     tabIndex={-1} 
                     key={folder.id} 
                     id={"folder - " + folder.id}  
-                    // clicked = false, selectedRow = null
-                    onDoubleClick={() => {
-                      setClicked(false);
-                      setSelectedRow(null);
-                      handleDoubleClickFolder(folder.id,folder.path);
-                    }}
                     onClick={() => {
                       setfolderOrFile(0);
                       // if there is not any selected row, update selectedRow and clicked, change the background color 
@@ -440,64 +325,81 @@ export default function MyFileOrbis(props)
                         }
                       }
                     }} 
-                  >
+                >
                     {/* iterate each column and create folder columns under the related column */}
                     {columns.map((column) => {
-                      // name column for folder
-                      if(column.id === 'name'){
+                    // name column for folder
+                    if(column.id === 'name'){
                         return (
-                          <TableCell 
+                        <TableCell 
                             key={column.id} 
                             align={column.align} 
                             sx={{cursor: 'default'}}
-                          >
+                        >
                             <FolderTwoToneIcon sx={{marginRight: 2}}/>
                             {folder.name}
-                          </TableCell>
+                        </TableCell>
                         );
-                      }
-                      // owner column for folder
-                      if(column.id === 'owner'){
+                    }
+                    // owner column for folder
+                    if(column.id === 'owner'){
                         return (
-                          <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
+                        <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
                             <AccountCircleTwoToneIcon /> me
-                          </TableCell>
+                        </TableCell>
                         );
-                      }
-                      // last-modified column for folder
-                      if(column.id === 'last-modified'){
-                        const date = new Date(folder.createdDate);
+                    }
+                    // trashed-date column for folder
+                    if(column.id === 'trashed-date'){
+                        const date = new Date(folder.deletedDate);
                         const day = date.getDate();
                         const month = date.toLocaleString('en-US', { month: 'short' });
                         const year = date.getFullYear();
                         const time = date.toLocaleTimeString();
                         const value = day + " " + month + " " + year + " " + time;
                         return (
-                          <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
+                        <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
                             {value}
-                          </TableCell>
+                        </TableCell>
                         );
-                      }
-                      // file-size column for folder
-                      if(column.id === 'file-size'){
+                    }
+                    // file-size column for folder
+                    if(column.id === 'file-size'){
                         return (
-                          <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
+                        <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
                             -
-                          </TableCell>
+                        </TableCell>
                         );
-                      }
+                    }
+                    // file-size column for folder
+                    if(column.id === 'original-location'){
+                        var counter = 0;
+                        var paths = folder.path.split("/");
+                        var newPath = "My FileOrbis"
+                        for(let i=0; i<paths.length-1 ;i++){
+                          if(i != 0){
+                            newPath = newPath + "/" + paths[counter+1];
+                            counter++;
+                          }
+                        }
+                        return (
+                        <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
+                            {newPath}
+                        </TableCell>
+                        );
+                    }
                     })}
-                  </TableRow>
+                </TableRow>
                 );
-              })}
-              {subFiles.map((file) => {
+            })}
+            {trashFiles.map((file) => {
                 return (
-                  <TableRow 
+                <TableRow 
                     hover 
                     role="checkbox" 
                     tabIndex={-1} 
                     key={file.id}
-                    id={"file - " + file.id}      
+                    id={"file - " + file.id}  
                     onClick={() => {                      
                       setfolderOrFile(1);
                       // if there is not any selected row, update selectedRow and clicked, change the background color 
@@ -536,56 +438,73 @@ export default function MyFileOrbis(props)
                         }
                       }
                     } }
-                  >
+                >
                     {/* iterate each column and create file columns under the related column like folder column */}
                     {columns.map((column) => {
-                      // name column for file
-                      if(column.id === 'name'){
+                    // name column for file
+                    if(column.id === 'name'){
                         return (
-                          <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
+                        <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
                             <AttachFileIcon sx={{marginRight: 2}}/>
                             {file.name}
-                          </TableCell>
+                        </TableCell>
                         );
-                      }
-                      // owner column for file
-                      if(column.id === 'owner'){
+                    }
+                    // owner column for file
+                    if(column.id === 'owner'){
                         return (
-                          <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
+                        <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
                             <AccountCircleTwoToneIcon /> me
-                          </TableCell>
+                        </TableCell>
                         );
-                      }
-                      // last-modified column for file
-                      if(column.id === 'last-modified'){
-                        const date = new Date(file.createdDate);
+                    }
+                    // trashed-date column for folder
+                    if(column.id === 'trashed-date'){
+                        const date = new Date(file.deletedDate);
                         const day = date.getDate();
                         const month = date.toLocaleString('en-US', { month: 'short' });
                         const year = date.getFullYear();
                         const time = date.toLocaleTimeString();
                         const value = day + " " + month + " " + year + " " + time;
                         return (
-                          <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
+                        <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
                             {value}
-                          </TableCell>
+                        </TableCell>
                         );
-                      }
-                      // file-size column for file
-                      if(column.id === 'file-size'){
+                    }
+                    // file-size column for folder
+                    if(column.id === 'file-size'){
                         return (
-                          <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>    
-                            {file.size}
-                          </TableCell>
+                        <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
+                          -
+                        </TableCell>
+                        );
+                    }
+                    // file-size column for folder
+                    if(column.id === 'original-location'){
+                        var counter = 0;
+                        var paths = file.path.split("/");
+                        var newPath = "My FileOrbis"
+                        for(let i=0; i<paths.length-1 ;i++){
+                          if(i != 0){
+                            newPath = newPath + "/" + paths[counter+1];
+                            counter++;
+                          }
+                        }
+                        return (
+                        <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
+                          {newPath}
+                        </TableCell>
                         );
                       }
                     })}
-                  </TableRow>
+                </TableRow>
                 );
               })}
             </TableBody>
-          </Table>
+        </Table>
         </TableContainer>
-      </Paper>
-    </div>  
-  );
+    </Paper>
+    </div>
+  )
 }

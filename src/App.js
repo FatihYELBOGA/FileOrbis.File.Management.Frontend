@@ -5,6 +5,7 @@ import { useState } from 'react';
 import Navbar from './Navbar/Navbar';
 import Box from '@mui/material/Box';
 import MyFileOrbis from './MyFileOrbis/MyFileOrbis'
+import Trash from './Trash/Trash';
 import Toolbar from '@mui/material/Toolbar';
 
 function App() 
@@ -15,6 +16,7 @@ function App()
   const [rootFolderId, setRootFolderId] = useState(null);
   const [mainFolderId, setMainFolderId] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [createdFolder, setCreatedFolder] = useState(false);
 
   // if userId equals null, go to the Login page
   if(userId == null){
@@ -35,7 +37,7 @@ function App()
       <Box sx={{ display: 'flex' }}>
         <BrowserRouter>
           {/* constant navbar menu */}
-          <Navbar setRootFolderId={setRootFolderId} mainFolderId={mainFolderId} />
+          <Navbar rootFolderId={rootFolderId} setRootFolderId={setRootFolderId} mainFolderId={mainFolderId} createdFolder={createdFolder} setCreatedFolder={setCreatedFolder} />
           {/* (box and toolbar component) it represents the remaining free space outside the navbar */}
           <Box
             component="main"
@@ -44,11 +46,10 @@ function App()
             <Toolbar />
             {/* left side menu bar links */}
             <Routes>
-              <Route exact path={'/My FileOrbis/' + rootFolderId} element = {<MyFileOrbis rootFolderId={rootFolderId} setRootFolderId={setRootFolderId} mainFolderId={mainFolderId} />} />
+              <Route exact path={'/My FileOrbis/' + rootFolderId} element = {<MyFileOrbis rootFolderId={rootFolderId} setRootFolderId={setRootFolderId} mainFolderId={mainFolderId} createdFolder={createdFolder} />} />
               <Route exact path='/Recent' element = {<div>recent</div>} />
-              <Route exact path='/Shared' element = {<div>shared</div>} />
               <Route exact path='/Starred' element = {<div>starred</div>} />
-              <Route exact path='/Trash' element = {<div>trash</div>} />
+              <Route exact path='/Trash' element = {<Trash />} />
               <Route exact path='/Storage' element = {<div>storage</div>} />
           </Routes>
           </Box>

@@ -17,24 +17,24 @@ import Typography from '@mui/material/Typography';
 import FileOrbisIcon from '../Images/icon.png'
 import CloudIcon from '@mui/icons-material/Cloud';
 import WorkHistoryIcon from '@mui/icons-material/WorkHistory';
-import ShareIcon from '@mui/icons-material/Share';
 import StarRateIcon from '@mui/icons-material/StarRate';
 import AutoDeleteIcon from '@mui/icons-material/AutoDelete';
 import StorageIcon from '@mui/icons-material/Storage';
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
-import AccountCircleTwoToneIcon from '@mui/icons-material/AccountCircleTwoTone';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import NewMenu from '../NewMenu/NewMenu';
 
 const drawerWidth = 240;
 
 function Navbar(props) 
 {
-  const { setRootFolderId, mainFolderId, window } = props;
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const { rootFolderId, setRootFolderId, mainFolderId, createdFolder, setCreatedFolder, window } = props;
+  const [mobileOpen, setMobileOpen] = useState(false);
   // activeMenuItem represents id of the selected left menu bar
-  const [activeMenuItem, setActiveMenuItem] = React.useState(null);
+  const [activeMenuItem, setActiveMenuItem] = useState(null);
   const navigate = useNavigate();
+  const[newMenuItem, setNewMenuItem] = useState(false); 
 
   useEffect(() => {
     setActiveMenuItem(1);  
@@ -46,7 +46,7 @@ function Navbar(props)
 
   // when the user clicks the new button, it will work
   const handleNewButtonClick = () => {
-    alert("new button clicked!");
+    setNewMenuItem(true);
   }
 
   // when the user clicks the any menu item, it will work
@@ -116,7 +116,7 @@ function Navbar(props)
       <Divider />
       {/* shared, starred, trashed menus */}
       <List>
-        {['Shared', 'Starred', 'Trash'].map((text, index) => (
+        {['Starred', 'Trash'].map((text, index) => (
           <ListItem key={text} disablePadding>
             <ListItemButton 
               sx={{ 
@@ -129,9 +129,8 @@ function Navbar(props)
             >
               <ListItemIcon>
                 {
-                    index === 0 ? <ShareIcon /> : 
-                    index === 1 ? <StarRateIcon /> : 
-                    index === 2 ? <AutoDeleteIcon /> : null
+                    index === 0 ? <StarRateIcon /> : 
+                    index === 1 ? <AutoDeleteIcon /> : null
                 }
               </ListItemIcon>
               <ListItemText primary={text} />
@@ -183,13 +182,20 @@ function Navbar(props)
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { sm: 'none' } }}
+              sx={{ 
+                mr: 2, 
+                display: { sm: 'none' }, 
+                backgroundColor: "#A9DDFF",
+                '&:hover': {
+                  backgroundColor: '#356FFF'
+                }
+              }}
             >
               <MenuIcon />
             </IconButton>
           </div>
           <Typography variant="h6" noWrap component="div" sx={{color:'black'}}>
-            <AccountCircleTwoToneIcon fontSize='large' sx={{cursor: 'pointer'}}/>
+            FileOrbis - file system management
           </Typography>
         </Toolbar>
       </AppBar>
@@ -222,6 +228,7 @@ function Navbar(props)
           }}
           open
         >
+          {newMenuItem ? <NewMenu rootFolderId={rootFolderId} mainFolderId={mainFolderId} setNewMenuItem={setNewMenuItem} createdFolder={createdFolder} setCreatedFolder={setCreatedFolder} /> : null}
           {drawer}
         </Drawer>
       </Box>
