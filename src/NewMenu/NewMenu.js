@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Divider from '@mui/material/Divider';
 import Paper from '@mui/material/Paper';
 import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
@@ -11,45 +10,88 @@ import { useState } from 'react';
 import CreateNewFolderTwoToneIcon from '@mui/icons-material/CreateNewFolderTwoTone';
 import NoteAddTwoToneIcon from '@mui/icons-material/NoteAddTwoTone';
 import NewFolderForm from '../NewFolderForm/NewFolderForm';
-import { useEffect } from 'react';
+import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function NewMenu(props) {
 
-  const {rootFolderId, mainFolderId, setNewMenuItem, createdFolder, setCreatedFolder} = props;
+  const {setActiveMenuItem, rootFolderId, mainFolderId, setNewMenuItem, createdFolder, setCreatedFolder} = props;
   const [hovered, setHovered] = useState(null);
   const [newFolderClick, setNewFolderClick] = useState(false);
-  const [fileUploadClick, setFileUploadClick] = useState(false);
+  const inputRef = useRef(null);
+  const navigate = useNavigate();
  
   const handleNewFolderMenu = () => {
     setNewFolderClick(true);
   }
 
   const handleFileUploadMenu = () => {
-    setFileUploadClick(true);
+    inputRef.current.click();
   }
+  
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0]
+    if(file != null){
+      // create the formData to use in the sign in request
+      const formData = new FormData();
+      formData.append("Content", file);
+      formData.append("FolderId", rootFolderId);
+
+      fetch("https://localhost:7043/files/add", {
+          method: 'POST',
+          body: formData,
+      })
+      .then((res) => res.json())
+      .then((res) => {
+          if (res.id != null) {
+              alert("file added succesfully");
+              if(createdFolder){
+                setCreatedFolder(false);
+              } else {
+                setCreatedFolder(true);
+              }
+          } else {
+              alert(res.message);    
+          }
+      })
+      .catch((err) => console.log(err));
+      setNewMenuItem(false);
+      navigate("/My FileOrbis/" + rootFolderId);
+      setActiveMenuItem(1);
+    }
+  };
 
   return (
     <div className="modal-new">
       <div className="modal-content-new">
             <Paper sx={{ width: 320, maxWidth: '100%' }}>
                 {
-                    newFolderClick ? <NewFolderForm rootFolderId={rootFolderId} mainFolderId={mainFolderId} setNewFolderClick={setNewFolderClick} setNewMenuItem={setNewMenuItem} createdFolder={createdFolder} setCreatedFolder={setCreatedFolder} /> :
+                    newFolderClick 
+                    ? 
+                      <NewFolderForm setActiveMenuItem={setActiveMenuItem} rootFolderId={rootFolderId} mainFolderId={mainFolderId} setNewFolderClick={setNewFolderClick} setNewMenuItem={setNewMenuItem} createdFolder={createdFolder} setCreatedFolder={setCreatedFolder} /> 
+                    :
                     <MenuList>
                         <MenuItem 
-                        onClick={handleNewFolderMenu}
-                        onMouseEnter={() => setHovered(0)}
-                        onMouseLeave={() => setHovered(null)}
-                        style={{backgroundColor: hovered === 0 ? '#e0e0e0' : 'transparent', paddingTop: '15px', paddingBottom: '15px'}}>
+                          onClick={handleNewFolderMenu}
+                          onMouseEnter={() => setHovered(0)}
+                          onMouseLeave={() => setHovered(null)}
+                          style={{backgroundColor: hovered === 0 ? '#e0e0e0' : 'transparent', paddingTop: '15px', paddingBottom: '15px'}}>
                         <ListItemIcon>
                             <CreateNewFolderTwoToneIcon/>
                         </ListItemIcon>
                         <ListItemText>New folder</ListItemText>
                         </MenuItem>
+                        <input
+                          type="file"
+                          ref={inputRef}
+                          style={{ display: 'none' }}
+                          onChange={handleFileSelect}
+                        />
                         <MenuItem 
-                        onClick={handleFileUploadMenu}
-                        onMouseEnter={() => setHovered(1)}
-                        onMouseLeave={() => setHovered(null)}
-                        style={{backgroundColor: hovered === 1 ? '#e0e0e0' : 'transparent', paddingTop: '15px', paddingBottom: '15px'}}>
+                          onClick={handleFileUploadMenu}
+                          onMouseEnter={() => setHovered(1)}
+                          onMouseLeave={() => setHovered(null)}
+                          style={{backgroundColor: hovered === 1 ? '#e0e0e0' : 'transparent', paddingTop: '15px', paddingBottom: '15px'}}>
                         <ListItemIcon>
                             <NoteAddTwoToneIcon />
                         </ListItemIcon>
@@ -65,7 +107,7 @@ export default function NewMenu(props) {
                                 Cancel
                             </Button>
                         </div>
-                    </MenuList> 
+                    </MenuList>
                 }
             </Paper>
         </div>

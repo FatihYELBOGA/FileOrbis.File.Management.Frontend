@@ -12,10 +12,11 @@ import Toolbar from '@mui/material/Toolbar';
 import AccountCircleTwoToneIcon from '@mui/icons-material/AccountCircleTwoTone';
 import AppBar from '@mui/material/AppBar';
 import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
-import RestorePageTwoToneIcon from '@mui/icons-material/RestorePageTwoTone';
-import DeleteForeverTwoToneIcon from '@mui/icons-material/DeleteForeverTwoTone';
+import { useNavigate } from 'react-router-dom';
+import ArrowCircleRightTwoToneIcon from '@mui/icons-material/ArrowCircleRightTwoTone';
+import StarBorderPurple500Icon from '@mui/icons-material/StarBorderPurple500';
 
-// name, owner, trashed-date, file-size, original locations columns
+// name, owner, last-modified, file-size, original locations columns
 const columns = [
     { id: 'name', label: 'Name', minWidth: 450 },
     {
@@ -26,8 +27,8 @@ const columns = [
       format: (value) => value.toLocaleString('en-US'),
     },
     {
-      id: 'trashed-date',
-      label: 'Trashed Date',
+      id: 'last-modified',
+      label: 'Last Modified',
       minWidth: 170,
       align: 'left',
       format: (value) => value.toLocaleString('en-US'),
@@ -48,77 +49,25 @@ const columns = [
     }
   ];
 
+export default function Favorite(props){
 
-export default function Trash(props) {
+  const { userId, setRootFolderId, setDirectPath, setActiveMenuItem } = props;
 
-  const {username} = props;
-
-  // trash folders and files of the user
-  const [trashFolders, setTrashFolders] = useState([]);
-  const [trashFiles, setTrashFiles] = useState([]);  
-  // selectedRow: represents selected row id
-  const [selectedRow, setSelectedRow] = useState(null);
+  const [favoriteFolders, setFavoriteFolders] = useState([]);
+  const [favoriteFiles, setFavoriteFiles] = useState([]);
   // clicked: checks whether the row is selected or not
   const [clicked, setClicked] = useState(false);
+  // use navigate
+  const navigate = useNavigate();
+  // selectedRow: represents selected row id
+  const [selectedRow, setSelectedRow] = useState(null);
   // folderOrFile: checks that it is file or folder
   const [folderOrFile, setfolderOrFile] = useState(null);
+  const [path, setPath] = useState();
 
-  const handleRestoreClick = () => {
-    // delete forever the file or folder
-    if(folderOrFile == 0){
-      fetch('https://localhost:7043/folders/restore/' + selectedRow, {
-        method: 'PUT'
-      })
-      .then((res) => {
-        if (res.status === 204) {
-          // Handle 204 No Content response
-          return Promise.resolve(null);
-        } else {
-          return res.json();
-        }
-      })
-      .then(
-        (result) => {
-          setSelectedRow(null);
-          setClicked(false);
-          alert("succesfully restored!");
-          getTrash();
-        },
-        (error) => {
-             console.log(error);
-        }
-      )
-    } 
-    else if(folderOrFile == 1) { 
-      fetch('https://localhost:7043/files/restore/' + selectedRow, {
-        method: 'PUT'
-      })
-      .then((res) => {
-        if (res.status === 204) {
-          // Handle 204 No Content response
-          return Promise.resolve(null);
-        } else {
-          return res.json();
-        }
-      })
-      .then(
-        (result) => {
-          setSelectedRow(null);
-          setClicked(false);
-          alert("succesfully restored!");
-          getTrash();
-        },
-        (error) => {
-             console.log(error);
-        }
-      )
-    }
-  }
-
-  const handleDeleteForeverClick = () => {
-    // delete forever the file or folder
-    if(folderOrFile == 0){
-      fetch('https://localhost:7043/folders/' + selectedRow, {
+  const handleRemoveFavorite = () => {
+    if(folderOrFile==0){
+      fetch('https://localhost:7043/users/favorites/folder/' + selectedRow, {
         method: 'DELETE'
       })
       .then((res) => {
@@ -133,16 +82,16 @@ export default function Trash(props) {
         (result) => {
           setSelectedRow(null);
           setClicked(false);
-          alert("folder succesfully removed!");
-          getTrash();
+          alert("starred folder succesfully removed!");
+          getFavorites();
         },
         (error) => {
              console.log(error);
         }
       )
     } 
-    else if(folderOrFile == 1) { 
-      fetch('https://localhost:7043/files/' + selectedRow, {
+    else if(folderOrFile==1){
+      fetch('https://localhost:7043/users/favorites/file/' + selectedRow, {
         method: 'DELETE'
       })
       .then((res) => {
@@ -157,19 +106,52 @@ export default function Trash(props) {
         (result) => {
           setSelectedRow(null);
           setClicked(false);
-          alert("file succesfully removed!");
-          getTrash();
+          alert("starred file succesfully removed!");
+          getFavorites();
         },
         (error) => {
-             console.log(error);
+            console.log(error);
+        }
+      )
+      }
+  }
+
+  const handleGoInto = (e) => {
+    if(folderOrFile == 0){
+      setClicked(false);
+      setRootFolderId(selectedRow);
+      setDirectPath(path);
+      navigate('/My FileOrbis/' + selectedRow);
+      setActiveMenuItem(1);
+    }
+    else if(folderOrFile == 1){
+      fetch('https://localhost:7043/folders/path/?path=' + path)
+      .then((res) => {
+        if (res.status === 204) {
+          // Handle 204 No Content response
+          return Promise.resolve(null);
+        } else {
+          return res.json();
+        }
+      })
+      .then(
+        (result) => {
+          setClicked(false);
+          setRootFolderId(result.id);
+          setDirectPath(path);
+          navigate('/My FileOrbis/' + result.id);
+          setActiveMenuItem(1);
+        },
+        (error) => {
+           console.log(error);
         }
       )
     }
   }
 
-  const getTrash = () => {
-    // load trash folders
-    fetch('https://localhost:7043/folders/trash/' + username)
+  const getFavorites = () => {
+    // load favorites folders
+    fetch('https://localhost:7043/users/favorites/' + userId)
     .then((res) => {
       if (res.status === 204) {
         // Handle 204 No Content response
@@ -180,14 +162,14 @@ export default function Trash(props) {
     })
   .then(
       (result) => {
-        setTrashFolders(result);
+        setFavoriteFolders(result.favoriteFolders);
       },
       (error) => {
         console.log(error);
       }
   );
-  // load trash files
-  fetch('https://localhost:7043/files/trash/' + username)
+  // load favorites files
+  fetch('https://localhost:7043/users/favorites/' + userId)
   .then((res) => {
     if (res.status === 204) {
       // Handle 204 No Content response
@@ -198,7 +180,7 @@ export default function Trash(props) {
   })
   .then(
     (result) => {
-      setTrashFiles(result);
+      setFavoriteFiles(result.favoriteFiles);
     },
     (error) => {
       console.log(error);
@@ -206,11 +188,11 @@ export default function Trash(props) {
   );
   }
 
-  // trash folders and files will be uploaded when the trash component is called
+  // favorite folders and files will be uploaded when the trash component is called
   useEffect(() => {
-    getTrash();
+    getFavorites();
   }, [])
-  
+
   return (
     <div>
       {/* 
@@ -247,13 +229,13 @@ export default function Trash(props) {
             }}
           />  
           <span style={{cursor: 'default'}}>1 selected</span>
-          <RestorePageTwoToneIcon 
+          <StarBorderPurple500Icon 
             sx={{marginLeft:'50px', marginRight: '25px', cursor:'pointer' }} 
-            onClick={handleRestoreClick}
+            onClick={handleRemoveFavorite}
           />
-          <DeleteForeverTwoToneIcon 
+          <ArrowCircleRightTwoToneIcon 
             sx={{cursor:'pointer'}} 
-            onClick={handleDeleteForeverClick}
+            onClick={handleGoInto}
           />
         </Toolbar> : 
         // constant "no selected item" text 
@@ -281,7 +263,7 @@ export default function Trash(props) {
             </TableHead>
             <TableBody>
             {/* create the folders */}
-            {trashFolders.map((folder) => {
+            {favoriteFolders.map((folder) => {
                 return (
                 <TableRow 
                     hover 
@@ -289,8 +271,16 @@ export default function Trash(props) {
                     tabIndex={-1} 
                     key={folder.id} 
                     id={"folder - " + folder.id}  
+                    onDoubleClick={() => {
+                      setRootFolderId(folder.folder.id);
+                      setDirectPath(path);
+                      // navigate to /home/ + {rootFolderId}
+                      navigate('/My FileOrbis/' + folder.folder.id);
+                      setActiveMenuItem(1);
+                    }}
                     onClick={() => {
-                      setfolderOrFile(0);
+                      setfolderOrFile(0);                      
+                      setPath(folder.folder.path);
                       // if there is not any selected row, update selectedRow and clicked, change the background color 
                       if(selectedRow == null){
                         document.getElementById("folder - " + folder.id).style.backgroundColor = "#A9DDFF";
@@ -326,7 +316,7 @@ export default function Trash(props) {
                           }
                         }
                       }
-                    }} 
+                    }}
                 >
                     {/* iterate each column and create folder columns under the related column */}
                     {columns.map((column) => {
@@ -339,7 +329,7 @@ export default function Trash(props) {
                             sx={{cursor: 'default'}}
                         >
                             <FolderTwoToneIcon sx={{marginRight: 2}}/>
-                            {folder.name}
+                            {folder.folder.name}
                         </TableCell>
                         );
                     }
@@ -352,8 +342,8 @@ export default function Trash(props) {
                         );
                     }
                     // trashed-date column for folder
-                    if(column.id === 'trashed-date'){
-                        const date = new Date(folder.deletedDate);
+                    if(column.id === 'last-modified'){
+                        const date = new Date(folder.folder.lastModifiedDate);
                         const day = date.getDate();
                         const month = date.toLocaleString('en-US', { month: 'short' });
                         const year = date.getFullYear();
@@ -376,7 +366,7 @@ export default function Trash(props) {
                     // file-size column for folder
                     if(column.id === 'original-location'){
                         var counter = 0;
-                        var paths = folder.path.split("/");
+                        var paths = folder.folder.path.split("/");
                         var newPath = "My FileOrbis"
                         for(let i=0; i<paths.length-1 ;i++){
                           if(i != 0){
@@ -394,7 +384,7 @@ export default function Trash(props) {
                 </TableRow>
                 );
             })}
-            {trashFiles.map((file) => {
+            {favoriteFiles.map((file) => {
                 return (
                 <TableRow 
                     hover 
@@ -402,8 +392,9 @@ export default function Trash(props) {
                     tabIndex={-1} 
                     key={file.id}
                     id={"file - " + file.id}  
-                    onClick={() => {                      
+                    onClick={() => {                    
                       setfolderOrFile(1);
+                      setPath(file.file.path);
                       // if there is not any selected row, update selectedRow and clicked, change the background color 
                       if(selectedRow == null){
                         document.getElementById("file - " + file.id).style.backgroundColor = "#A9DDFF";
@@ -415,7 +406,7 @@ export default function Trash(props) {
                         // change the backgroung color of the selected row 
                         // update selectedRow and clicked
                       else {
-                        if (selectedRow != file.id){
+                        if (selectedRow != file.file.id){
                           if(document.getElementById("folder - " + selectedRow) != null){
                             document.getElementById("folder - " + selectedRow).style.backgroundColor = "";
                           } 
@@ -448,7 +439,7 @@ export default function Trash(props) {
                         return (
                         <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
                             <AttachFileIcon sx={{marginRight: 2}}/>
-                            {file.name}
+                            {file.file.name}
                         </TableCell>
                         );
                     }
@@ -461,8 +452,8 @@ export default function Trash(props) {
                         );
                     }
                     // trashed-date column for folder
-                    if(column.id === 'trashed-date'){
-                        const date = new Date(file.deletedDate);
+                    if(column.id === 'last-modified'){
+                        const date = new Date(file.file.lastModifiedDate);
                         const day = date.getDate();
                         const month = date.toLocaleString('en-US', { month: 'short' });
                         const year = date.getFullYear();
@@ -478,16 +469,16 @@ export default function Trash(props) {
                     if(column.id === 'file-size'){
                         return (
                         <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
-                          {file.size}
+                          {file.file.size}
                         </TableCell>
                         );
                     }
                     // file-size column for folder
                     if(column.id === 'original-location'){
                         var counter = 0;
-                        var paths = file.path.split("/");
+                        var paths = file.file.path.split("/");
                         var newPath = "My FileOrbis"
-                        for(let i=0; i<paths.length-1 ;i++){
+                        for(let i=0; i<paths.length ;i++){
                           if(i != 0){
                             newPath = newPath + "/" + paths[counter+1];
                             counter++;

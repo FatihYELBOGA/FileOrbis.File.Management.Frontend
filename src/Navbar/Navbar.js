@@ -29,10 +29,8 @@ const drawerWidth = 240;
 
 function Navbar(props) 
 {
-  const { rootFolderId, setRootFolderId, mainFolderId, createdFolder, setCreatedFolder, window } = props;
+  const { rootFolderId, setRootFolderId, mainFolderId, createdFolder, setCreatedFolder, activeMenuItem, setActiveMenuItem, window } = props;
   const [mobileOpen, setMobileOpen] = useState(false);
-  // activeMenuItem represents id of the selected left menu bar
-  const [activeMenuItem, setActiveMenuItem] = useState(null);
   const navigate = useNavigate();
   const[newMenuItem, setNewMenuItem] = useState(false); 
 
@@ -58,6 +56,7 @@ function Navbar(props)
         navigate("/"+ text + "/" + mainFolderId);
       } else {
         navigate("/" + text);
+        setRootFolderId(mainFolderId);
       }
     }
   };
@@ -228,7 +227,7 @@ function Navbar(props)
           }}
           open
         >
-          {newMenuItem ? <NewMenu rootFolderId={rootFolderId} mainFolderId={mainFolderId} setNewMenuItem={setNewMenuItem} createdFolder={createdFolder} setCreatedFolder={setCreatedFolder} /> : null}
+          {newMenuItem ? <NewMenu setActiveMenuItem={setActiveMenuItem} rootFolderId={rootFolderId} mainFolderId={mainFolderId} setNewMenuItem={setNewMenuItem} createdFolder={createdFolder} setCreatedFolder={setCreatedFolder} /> : null}
           {drawer}
         </Drawer>
       </Box>

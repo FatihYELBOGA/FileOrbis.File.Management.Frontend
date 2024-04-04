@@ -17,10 +17,9 @@ import AppBar from '@mui/material/AppBar';
 import DriveFileRenameOutlineTwoToneIcon from '@mui/icons-material/DriveFileRenameOutlineTwoTone';
 import DownloadTwoToneIcon from '@mui/icons-material/DownloadTwoTone';
 import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
-import StarRateTwoToneIcon from '@mui/icons-material/StarRateTwoTone';
-import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
 import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
 import FolderRenameForm from '../RenameForm/RenameForm';
+import StarRateTwoToneIcon from '@mui/icons-material/StarRateTwoTone';
 
 // name, owner, last-modified, file-size columns
 const columns = [
@@ -50,7 +49,7 @@ const columns = [
 
 export default function MyFileOrbis(props) 
 {
-  const { rootFolderId, setRootFolderId, mainFolderId, createdFolder } = props;
+  const { userId, rootFolderId, setRootFolderId, mainFolderId, createdFolder, directPath } = props;
   // folders and files of user's main folder
   const [subFolders, setSubFolders] = useState([]);
   const [subFiles, setSubFiles] = useState([]);
@@ -252,7 +251,41 @@ export default function MyFileOrbis(props)
         });
       }
   };
-  
+
+  const handleStar = () => {
+    if(folderOrFile == 0){
+      const formData = new FormData();
+      formData.append("UserId", userId);
+      formData.append("FolderId", selectedRow);
+      
+      // sign in request
+      fetch('https://localhost:7043/users/favorites/folder', {
+          method: 'POST',
+          body: formData,
+      })
+      .then((res) => res.json())
+      .then((res) => {
+        alert("file succesfully starred!");
+      })
+      .catch((err) => console.log(err));
+    }
+    else if(folderOrFile == 1){
+      const formData = new FormData();
+      formData.append("UserId", userId);
+      formData.append("FileId", selectedRow);
+      
+      // sign in request
+      fetch('https://localhost:7043/users/favorites/file', {
+          method: 'POST',
+          body: formData,
+      })
+      .then((res) => res.json())
+      .then((res) => {
+        alert("file succesfully starred!");
+      })
+      .catch((err) => console.log(err));
+    }
+  }
 
   const getFoldersAndFiles = () => {
     fetch('https://localhost:7043/folders/' + rootFolderId)
@@ -275,6 +308,12 @@ export default function MyFileOrbis(props)
       }
     );
   }
+
+  useEffect(() => {
+    if(rootFolderId != mainFolderId){
+      setPath(directPath);
+    }
+  }, [])
  
   // when rootFolderId updated and first render completed, it will work
   useEffect(() => {
@@ -347,14 +386,17 @@ export default function MyFileOrbis(props)
             sx={{ marginRight: '25px', cursor:'pointer' }} 
             onClick={handleDownload}
           />
-          <StarRateTwoToneIcon sx={{ marginRight: '25px', cursor:'pointer' }} />
+          <StarRateTwoToneIcon 
+            sx={{ marginRight: '25px', cursor:'pointer' }} 
+            onClick={handleStar}
+          />
           <DeleteTwoToneIcon 
             sx={{cursor:'pointer'}} 
             onClick={handleSentToTrash}
           />
         </Toolbar> : 
         // constant "no selected item" text 
-        <Toolbar sx={{ display: 'flex', alignItems: 'center'}}>
+        <Toolbar sx={{ display: 'flex'}}>
           <span style={{cursor: 'default'}}>no selected item</span>
         </Toolbar>}
       </AppBar>
@@ -452,7 +494,7 @@ export default function MyFileOrbis(props)
                             sx={{cursor: 'default'}}
                           >
                             <FolderTwoToneIcon sx={{marginRight: 2}}/>
-                            {folder.name}
+                            {folder.name} 
                           </TableCell>
                         );
                       }
@@ -466,12 +508,15 @@ export default function MyFileOrbis(props)
                       }
                       // last-modified column for folder
                       if(column.id === 'last-modified'){
-                        const date = new Date(folder.createdDate);
-                        const day = date.getDate();
-                        const month = date.toLocaleString('en-US', { month: 'short' });
-                        const year = date.getFullYear();
-                        const time = date.toLocaleTimeString();
-                        const value = day + " " + month + " " + year + " " + time;
+                        var value = "-"
+                        if(folder.LastModifiedDate != null){
+                          const date = new Date(folder.LastModifiedDate);
+                          const day = date.getDate();
+                          const month = date.toLocaleString('en-US', { month: 'short' });
+                          const year = date.getFullYear();
+                          const time = date.toLocaleTimeString();
+                          value = day + " " + month + " " + year + " " + time;
+                        }
                         return (
                           <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
                             {value}
@@ -498,6 +543,9 @@ export default function MyFileOrbis(props)
                     tabIndex={-1} 
                     key={file.id}
                     id={"file - " + file.id}      
+                    onDoubleClick={() => {
+                      
+                    }}
                     onClick={() => {                      
                       setfolderOrFile(1);
                       // if there is not any selected row, update selectedRow and clicked, change the background color 

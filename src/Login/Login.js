@@ -39,7 +39,7 @@ export default function Login(props)
 {
   // if login is successful, (userId, rootFolderId, mainFolderId) will be updated 
   // email, password useStates
-  const { setUserId, setRootFolderId, setMainFolderId } = props
+  const { setUsername, setUserId, setRootFolderId, setMainFolderId } = props
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -82,6 +82,7 @@ export default function Login(props)
         if (res.id != null) {
             // update the userId, rootFolderId, mainFolderId
             // navigate to /home/ + {rootFolderId}
+            setUsername(res.username);
             setUserId(res.id);
             setRootFolderId(res.rootFolderId);
             setMainFolderId(res.rootFolderId);

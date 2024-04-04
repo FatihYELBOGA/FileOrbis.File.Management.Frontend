@@ -9,9 +9,10 @@ import { useNavigate } from 'react-router-dom';
 
 function NewFolderForm(props) {
 
-  const {rootFolderId, mainFolderId, setNewFolderClick, setNewMenuItem, createdFolder, setCreatedFolder} = props
+  const {setActiveMenuItem, rootFolderId, mainFolderId, setNewFolderClick, setNewMenuItem, createdFolder, setCreatedFolder} = props
   const [newFolderName, setNewFolderName] = useState("Untitled folder");
-
+  const navigate = useNavigate();
+  
   const handleChange = (event) => {
     setNewFolderName(event.target.value);
   };
@@ -46,6 +47,8 @@ function NewFolderForm(props) {
     })
     .catch((err) => console.log(err));
     setNewMenuItem(false);
+    navigate("/My FileOrbis/" + rootFolderId);
+    setActiveMenuItem(1);
   }
 
   return (
