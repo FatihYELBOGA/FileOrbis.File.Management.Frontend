@@ -9,6 +9,7 @@ import Trash from './Trash/Trash';
 import Toolbar from '@mui/material/Toolbar';
 import Favorite from './Favorite/Favorite';
 import Recent from './Recent/Recent';
+import Storage from './Storage/Storage';
 
 function App() 
 {
@@ -19,10 +20,12 @@ function App()
   const [mainFolderId, setMainFolderId] = useState(null);
   const [userId, setUserId] = useState(null);
   const [username, setUsername] = useState(null);
+  // checks whether the new file&folder is created
   const [createdFolder, setCreatedFolder] = useState(false);
   const [directPath, setDirectPath] = useState("");
   // activeMenuItem represents id of the selected left menu bar
   const [activeMenuItem, setActiveMenuItem] = useState(null);
+  const [searchText, setSearchText] = useState("");
 
   // if userId equals null, go to the Login page
   if(userId == null){
@@ -43,7 +46,7 @@ function App()
       <Box sx={{ display: 'flex' }}>
         <BrowserRouter>
           {/* constant navbar menu */}
-          <Navbar rootFolderId={rootFolderId} setRootFolderId={setRootFolderId} mainFolderId={mainFolderId} createdFolder={createdFolder} setCreatedFolder={setCreatedFolder} activeMenuItem={activeMenuItem} setActiveMenuItem={setActiveMenuItem} />
+          <Navbar setSearchText={setSearchText} setUserId={setUserId} rootFolderId={rootFolderId} setRootFolderId={setRootFolderId} mainFolderId={mainFolderId} createdFolder={createdFolder} setCreatedFolder={setCreatedFolder} activeMenuItem={activeMenuItem} setActiveMenuItem={setActiveMenuItem} />
           {/* (box and toolbar component) it represents the remaining free space outside the navbar */}
           <Box
             component="main"
@@ -52,11 +55,11 @@ function App()
             <Toolbar />
             {/* left side menu bar links */}
             <Routes>
-              <Route exact path={'/My FileOrbis/' + rootFolderId} element = {<MyFileOrbis userId={userId} rootFolderId={rootFolderId} setRootFolderId={setRootFolderId} mainFolderId={mainFolderId} createdFolder={createdFolder} directPath={directPath} />} />
-              <Route exact path='/Recent' element = {<Recent userId={userId} />} />
-              <Route exact path='/Starred' element = {<Favorite userId={userId} setRootFolderId={setRootFolderId} setDirectPath={setDirectPath} setActiveMenuItem={setActiveMenuItem} />} />
-              <Route exact path='/Trash' element = {<Trash username={username} />} />
-              <Route exact path='/Storage' element = {<div>storage</div>} />
+              <Route exact path={'/My FileOrbis/' + rootFolderId} element = {<MyFileOrbis searchText={searchText} userId={userId} rootFolderId={rootFolderId} setRootFolderId={setRootFolderId} mainFolderId={mainFolderId} createdFolder={createdFolder} directPath={directPath} />} />
+              <Route exact path='/Recent' element = {<Recent searchText={searchText} username={username} setRootFolderId={setRootFolderId} setDirectPath={setDirectPath} setActiveMenuItem={setActiveMenuItem} />} />
+              <Route exact path='/Starred' element = {<Favorite username={username} searchText={searchText} userId={userId} setRootFolderId={setRootFolderId} setDirectPath={setDirectPath} setActiveMenuItem={setActiveMenuItem} />} />
+              <Route exact path='/Trash' element = {<Trash searchText={searchText} username={username} />} />
+              <Route exact path='/Storage' element = {<Storage searchText={searchText} username={username} />} />              
           </Routes>
           </Box>
         </BrowserRouter>

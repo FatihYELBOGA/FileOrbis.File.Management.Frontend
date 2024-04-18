@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 function NewFolderForm(props) {
 
-  const {setActiveMenuItem, rootFolderId, mainFolderId, setNewFolderClick, setNewMenuItem, createdFolder, setCreatedFolder} = props
+  const {setActiveMenuItem, rootFolderId, setNewFolderClick, setNewMenuItem, createdFolder, setCreatedFolder} = props
   const [newFolderName, setNewFolderName] = useState("Untitled folder");
   const navigate = useNavigate();
   
@@ -21,34 +21,62 @@ function NewFolderForm(props) {
     setNewFolderClick(false);
   }
 
+  // checks whether new folder name is suitable or not
+  // < 255 && > 0 character(s) && folder name exist or not && not contains invalid character(s)
   const handleOKClick = () => {
-    
-    // create the formData to use in the sign in request
-    const formData = new FormData();
-    formData.append("Name", newFolderName);
-    formData.append("ParentFolderId", rootFolderId);
-
-    fetch("https://localhost:7043/folders/create", {
-        method: 'POST',
-        body: formData,
-    })
-    .then((res) => res.json())
-    .then((res) => {
-        if (res.id != null) {
-            alert("folder created succesfully");
-            if(createdFolder){
-              setCreatedFolder(false);
-            } else {
-              setCreatedFolder(true);
-            }
-        } else {
-            alert(res.message);    
-        }
-    })
-    .catch((err) => console.log(err));
-    setNewMenuItem(false);
-    navigate("/My FileOrbis/" + rootFolderId);
-    setActiveMenuItem(1);
+    if(newFolderName.length >= 255){
+      alert("the folder name can not exceed 255 characters!")
+      return;
+    }
+    if(newFolderName.trim().length == 0){
+      alert("the folder name can not be empty!")
+      return;
+    }
+    if(!newFolderName.includes("/") && 
+       !newFolderName.includes("\\") && 
+       !newFolderName.includes(":") &&
+       !newFolderName.includes("*") && 
+       !newFolderName.includes("?") && 
+       !newFolderName.includes("<") &&
+       !newFolderName.includes(">") && 
+       !newFolderName.includes("|")){
+        fetch("https://localhost:7043/folders/check-name-exists/?name=" + newFolderName + "&parentFolderId=" + rootFolderId)
+        .then((res) => res.json())
+        .then((res) => {
+          console.log(res);
+          if(res == true){
+            alert("the folder name: '" + newFolderName + "' is already exist!");
+          } 
+          else {
+            const formData = new FormData();
+            formData.append("Name", newFolderName);
+            formData.append("ParentFolderId", rootFolderId);
+            fetch("https://localhost:7043/folders/create", {
+              method: 'POST',
+              body: formData,
+            })
+            .then((res) => res.json())
+            .then((res) => {
+              if (res.id != null) {
+                  alert("folder created succesfully");
+                  if(createdFolder){
+                    setCreatedFolder(false);
+                  } else {
+                    setCreatedFolder(true);
+                  }
+              } else {
+                alert(res.message);    
+              }
+            })
+            .catch((err) => console.log(err));
+            setNewMenuItem(false);
+            navigate("/My FileOrbis/" + rootFolderId);
+            setActiveMenuItem(1);
+          }
+        })
+    } else {
+      alert('The folder name can not contain the following characters: / \\ * ? " < > |');
+    }
   }
 
   return (

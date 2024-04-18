@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import './Rename.css'
 
-function FolderRenameForm({ folderOrFile, id, setIsEditing, renamed, setRenamed }) {
+export default function RenameForm({ rootFolderId, folderOrFile, id, setIsEditing, renamed, setRenamed }) {
     
   // newName: represents new file&folder name (text field)
   const [newName, setNewName] = useState("");
@@ -16,49 +16,139 @@ function FolderRenameForm({ folderOrFile, id, setIsEditing, renamed, setRenamed 
     setNewName(event.target.value);
   };
 
+  // rename operations
+  // checks whether the new file&folder name is suitable or not
   const onSubmit = () => 
   {
-    // checks whether newName created with space character(s) or not
-    if(newName.trim().length != 0){
-      // checks that the file or folder will change
-      var folders_or_file = "folders";
-      if(folderOrFile == 1){
-        folders_or_file = "files"
-      }
-      // rename file&folder request
-      fetch("https://localhost:7043/" + folders_or_file + "/rename/" + id + "?name=" + newName, {
-       method: 'PUT'
-      })
+    if(newName.length >= 255){
+      alert("file&folder name can not exceed 255 characters!")
+      return;
+    }
+    if(newName.trim().length == 0){
+      alert("file&folder name can not be empty!")
+      return;
+    }
+    var extension = "";
+    var folders_or_file = "folders";
+    if(folderOrFile == 0){
+      if(!newName.includes("/") && 
+          !newName.includes("\\") && 
+          !newName.includes(":") &&
+          !newName.includes("*") && 
+          !newName.includes("?") && 
+          !newName.includes("<") &&
+          !newName.includes(">") && 
+          !newName.includes("|")){
+            fetch("https://localhost:7043/folders/check-name-exists/?name=" + newName + "&parentFolderId=" + rootFolderId)
+            .then((res) => res.json())
+            .then((res) => {
+              console.log(res);
+              if(res == true){
+                alert("the " + folders_or_file + " name: '" + newName + "' is already exist!");
+              } 
+              else {
+               // rename file&folder request
+                fetch("https://localhost:7043/" + folders_or_file + "/rename/" + id + "?name=" + newName, {
+                  method: 'PUT'
+                })
+                .then((res) => {
+                  if (res.status === 204) {
+                    // Handle 204 No Content response
+                    return Promise.resolve(null);
+                 } else {
+                    return res.json();
+                 }
+                })
+                .then((res) => {
+                  if(res !== null){
+                    // display the successful message
+                    // close the editing form (setIsEditing) and render the page (setRenamed)
+                    if(folderOrFile == 0){
+                      alert("folder name changed succesfully!");
+                    } else {
+                      alert("file name changed succesfully!");
+                    }
+                    setIsEditing(false);
+                    if(renamed){
+                      setRenamed(false);
+                    } else {
+                      setRenamed(true);
+                    }
+                  }
+                }, 
+                (error) => {
+                  console.log(error);
+                })
+              }
+            })
+       }
+       else{
+          alert('The file&folder name can not contain the following characters: / \\ * ? " < > |')
+       }
+    } 
+    else if(folderOrFile == 1){
+      folders_or_file = "files"
+      fetch("https://localhost:7043/files/name/" + id)
+      .then((res) => res.text())
       .then((res) => {
-        if (res.status === 204) {
-          // Handle 204 No Content response
-          return Promise.resolve(null);
-        } else {
-          return res.json();
-        }
-      })
-      .then((res) => {
-        if(res !== null){
-          // display the successful message
-          // close the editing form (setIsEditing) and render the page (setRenamed)
-          if(folderOrFile == 0){
-            alert("folder name changed succesfully!");
-          } else {
-            alert("file name changed succesfully!");
+        var names = res.split(".");
+        if(names.length > 1){
+          extension = names[names.length - 1];
+          if(!newName.includes("/") && 
+          !newName.includes("\\") && 
+          !newName.includes(":") &&
+          !newName.includes("*") && 
+          !newName.includes("?") && 
+          !newName.includes("<") &&
+          !newName.includes(">") && 
+          !newName.includes("|")){
+            fetch("https://localhost:7043/folders/check-name-exists/?name=" + newName + "." + extension + "&parentFolderId=" + rootFolderId)
+            .then((res) => res.json())
+            .then((res) => {
+              console.log(res);
+              if(res == true){
+                alert("the " + folders_or_file + " name: '" + newName + "." + extension + "' is already exist!");
+              } else {
+                // rename file&folder request
+                fetch("https://localhost:7043/" + folders_or_file + "/rename/" + id + "?name=" + newName, {
+                  method: 'PUT'
+                })
+                .then((res) => {
+                  if (res.status === 204) {
+                    // Handle 204 No Content response
+                    return Promise.resolve(null);
+                  } else {
+                  return res.json();
+                  }
+                })
+                .then((res) => {
+                  if(res !== null){
+                    // display the successful message
+                    // close the editing form (setIsEditing) and render the page (setRenamed)
+                    if(folderOrFile == 0){
+                     alert("folder name changed succesfully!");
+                    } else {
+                      alert("file name changed succesfully!");
+                    }
+                    setIsEditing(false);
+                    if(renamed){
+                      setRenamed(false);
+                    } else {
+                      setRenamed(true);
+                    }
+                 }
+                }, 
+                (error) => {
+                  console.log(error);
+                })
+             }
+           })
           }
-          setIsEditing(false);
-          if(renamed){
-            setRenamed(false);
-          } else {
-            setRenamed(true);
+          else{
+            alert('The file&folder name can not contain the following characters: / \\ * ? " < > |')
           }
         }
-      }, 
-      (error) => {
-        console.log(error);
-      })
-    } else {
-        alert("invalid new name");
+      });
     }
   }
 
@@ -125,5 +215,3 @@ function FolderRenameForm({ folderOrFile, id, setIsEditing, renamed, setRenamed 
     </div>
   );
 }
-
-export default FolderRenameForm;

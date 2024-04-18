@@ -21,18 +21,23 @@ import StarRateIcon from '@mui/icons-material/StarRate';
 import AutoDeleteIcon from '@mui/icons-material/AutoDelete';
 import StorageIcon from '@mui/icons-material/Storage';
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import NewMenu from '../NewMenu/NewMenu';
+import ExitToAppTwoToneIcon from '@mui/icons-material/ExitToAppTwoTone';
+import AccountCircleTwoToneIcon from '@mui/icons-material/AccountCircleTwoTone';
+import SearchIcon from "@mui/icons-material/Search";
+import TextField from "@mui/material/TextField";
+
 
 const drawerWidth = 240;
 
 function Navbar(props) 
 {
-  const { rootFolderId, setRootFolderId, mainFolderId, createdFolder, setCreatedFolder, activeMenuItem, setActiveMenuItem, window } = props;
+  const { setUserId, rootFolderId, setRootFolderId, mainFolderId, createdFolder, setCreatedFolder, activeMenuItem, setActiveMenuItem, setSearchText, window } = props;
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-  const[newMenuItem, setNewMenuItem] = useState(false); 
+  const [newMenuItem, setNewMenuItem] = useState(false); 
 
   useEffect(() => {
     setActiveMenuItem(1);  
@@ -60,6 +65,14 @@ function Navbar(props)
       }
     }
   };
+
+  const handleProfile = () => {
+  }
+
+  const handleLogOut = () => {
+    setUserId(null);
+    navigate("/");
+  }
 
   // left menu bar
   const drawer = (
@@ -193,8 +206,37 @@ function Navbar(props)
               <MenuIcon />
             </IconButton>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+      <TextField
+        id="search-bar"
+        className="text"
+        label="Search in FileOrbis"
+        variant="outlined"
+        placeholder="Search..."
+        size="small"
+        sx={{ width: '600px', height: '40px', borderRadius: "100px" }}
+        onChange={(e) => { setSearchText(e.target.value); }}
+        InputProps={{
+          endAdornment: (
+            <IconButton aria-label="search" edge="end" style={{ cursor: 'default' }}>
+              <SearchIcon style={{ fill: "blue" }} />
+            </IconButton>
+          ),
+          sx: { borderRadius: '25px' },
+        }}
+      />
+    </div>
           <Typography variant="h6" noWrap component="div" sx={{color:'black'}}>
-            FileOrbis - file system management
+            
+    <Link style={{ textDecoration: 'none', color: 'inherit'}} to="/Profile" target="_blank"><AccountCircleTwoToneIcon fontSize='large' 
+              sx={{cursor: 'pointer'}}
+              onClick={handleProfile}
+              /></Link>
+            
+            <ExitToAppTwoToneIcon fontSize='large' 
+              sx={{marginLeft: "16px", cursor: 'pointer'}} 
+              onClick={handleLogOut}
+            />
           </Typography>
         </Toolbar>
       </AppBar>

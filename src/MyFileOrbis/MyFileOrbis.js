@@ -18,8 +18,11 @@ import DriveFileRenameOutlineTwoToneIcon from '@mui/icons-material/DriveFileRena
 import DownloadTwoToneIcon from '@mui/icons-material/DownloadTwoTone';
 import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
 import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
-import FolderRenameForm from '../RenameForm/RenameForm';
+import RenameForm from '../RenameForm/RenameForm';
 import StarRateTwoToneIcon from '@mui/icons-material/StarRateTwoTone';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import StarTwoToneIcon from '@mui/icons-material/StarTwoTone';
 
 // name, owner, last-modified, file-size columns
 const columns = [
@@ -49,7 +52,7 @@ const columns = [
 
 export default function MyFileOrbis(props) 
 {
-  const { userId, rootFolderId, setRootFolderId, mainFolderId, createdFolder, directPath } = props;
+  const { searchText, userId, rootFolderId, setRootFolderId, mainFolderId, createdFolder, directPath } = props;
   // folders and files of user's main folder
   const [subFolders, setSubFolders] = useState([]);
   const [subFiles, setSubFiles] = useState([]);
@@ -61,6 +64,7 @@ export default function MyFileOrbis(props)
   const navigate = useNavigate();
   // selectedRow: represents selected row id
   const [selectedRow, setSelectedRow] = useState(null);
+  const [favorite, setFavorite] = useState(false);
   // clicked: checks whether the row is selected or not
   const [clicked, setClicked] = useState(false);
   // isEditing: checks that editing form is open or closed
@@ -69,6 +73,7 @@ export default function MyFileOrbis(props)
   const [folderOrFile, setfolderOrFile] = useState(null);
   // renamed: when the file&folder name changed, it is changing to bring current file&folder of the root folder
   const [renamed, setRenamed] = useState(false); 
+  const [loading, setLoading] = useState(null);
 
   // when the user double clicks the folder row, it will work
   // update root folder id, path of the selected folder and selected row id
@@ -77,6 +82,7 @@ export default function MyFileOrbis(props)
       setRootFolderId(id);
       setPath(path);
       setSelectedRow(null);
+      setFavorite(false);
       navigate('/My FileOrbis/' + id);
   }
 
@@ -118,8 +124,10 @@ export default function MyFileOrbis(props)
     )
   }
 
+  // trash operations with file&folder id
+  // selected row = null, favorite and clicked = false
   const handleSentToTrash = () => {
-    // sent the file or folder with id to trash  
+    // send the file or folder with id to trash  
     if(folderOrFile == 0){
       fetch('https://localhost:7043/folders/trash/' + selectedRow, {
         method: 'PUT'
@@ -135,12 +143,13 @@ export default function MyFileOrbis(props)
       .then(
         (result) => {
           setSelectedRow(null);
+          setFavorite(false);
           setClicked(false);
           alert("folder succesfully trashed");
           getFoldersAndFiles();
         },
         (error) => {
-             console.log(error);
+          console.log(error);
         }
       )
     } 
@@ -159,6 +168,7 @@ export default function MyFileOrbis(props)
       .then(
         (result) => {
           setSelectedRow(null);
+          setFavorite(false);
           setClicked(false);
           alert("file succesfully trashed");
           getFoldersAndFiles();
@@ -170,12 +180,12 @@ export default function MyFileOrbis(props)
     }
   }
 
+  // before download, get file&folder name
+  // download operations with file& folder id
   const handleDownload = () => {
-
     if(folderOrFile == 1)
     {
       var fileName = "";
-
       fetch('https://localhost:7043/files/name/' + selectedRow)
       .then(response => {
         if (!response.ok) {
@@ -189,31 +199,29 @@ export default function MyFileOrbis(props)
       .catch(error => {
         console.error(error);
       });
-  
-      fetch(`https://localhost:7043/files/` + selectedRow)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Server error!');
-          }
-          return response.blob();
-        })
-        .then(blob => {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', fileName);
-          document.body.appendChild(link);
-          link.click();
-          alert("file downloaded successfully!");
-        })
-        .catch(error => {
-          console.error(error);
-        });
+      fetch(`https://localhost:7043/files/download/` + selectedRow)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Server error!');
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        alert("file downloaded successfully!");
+      })
+      .catch(error => {
+        console.error(error);
+      });
     } 
     else if(folderOrFile == 0)
     {      
       var folderName = "";
-
       fetch('https://localhost:7043/folders/name/' + selectedRow)
       .then(response => {
         if (!response.ok) {
@@ -241,7 +249,7 @@ export default function MyFileOrbis(props)
           const url = window.URL.createObjectURL(new Blob([blob]));
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', folderName + ".zip"); // İndirilen dosyanın adı
+          link.setAttribute('download', folderName + ".zip");
           document.body.appendChild(link);
           link.click();
           link.parentNode.removeChild(link);
@@ -252,20 +260,23 @@ export default function MyFileOrbis(props)
       }
   };
 
+  // check whether file&folder is starred or not
+  // if not starred, add to favorite table
   const handleStar = () => {
+    if(!favorite){
     if(folderOrFile == 0){
       const formData = new FormData();
       formData.append("UserId", userId);
       formData.append("FolderId", selectedRow);
-      
-      // sign in request
       fetch('https://localhost:7043/users/favorites/folder', {
           method: 'POST',
           body: formData,
       })
       .then((res) => res.json())
       .then((res) => {
-        alert("file succesfully starred!");
+        alert("folder succesfully starred!");
+        getFoldersAndFiles();
+        setClicked(false);
       })
       .catch((err) => console.log(err));
     }
@@ -273,8 +284,6 @@ export default function MyFileOrbis(props)
       const formData = new FormData();
       formData.append("UserId", userId);
       formData.append("FileId", selectedRow);
-      
-      // sign in request
       fetch('https://localhost:7043/users/favorites/file', {
           method: 'POST',
           body: formData,
@@ -282,13 +291,21 @@ export default function MyFileOrbis(props)
       .then((res) => res.json())
       .then((res) => {
         alert("file succesfully starred!");
+        getFoldersAndFiles();
+        setClicked(false);
       })
       .catch((err) => console.log(err));
     }
+    } else {
+      alert("the file&folder is already starred!");
+    }
   }
 
+  // get folder with folder and user ids
   const getFoldersAndFiles = () => {
-    fetch('https://localhost:7043/folders/' + rootFolderId)
+    setSelectedRow(null);
+    setLoading(true);
+    fetch('https://localhost:7043/folders/?folderId=' + rootFolderId + "&userId=" + userId)
     .then((res) => {
       if (res.status === 204) {
         // Handle 204 No Content response
@@ -299,9 +316,12 @@ export default function MyFileOrbis(props)
     })
     .then(
       (result) => {
-        // update the folders and files
-        setSubFolders(result.subFolders);
-        setSubFiles(result.subFiles);
+        const filteredSubFolders = result.subFolders.filter(folder => folder.name.includes(searchText));
+        const filteredSubFiles = result.subFiles.filter(file => file.name.includes(searchText));
+
+        setSubFolders(filteredSubFolders);
+        setSubFiles(filteredSubFiles);
+        setLoading(false);
       },
       (error) => {
         console.log(error);
@@ -309,6 +329,7 @@ export default function MyFileOrbis(props)
     );
   }
 
+  // if the folder is not top folder
   useEffect(() => {
     if(rootFolderId != mainFolderId){
       setPath(directPath);
@@ -316,12 +337,13 @@ export default function MyFileOrbis(props)
   }, [])
  
   // when rootFolderId updated and first render completed, it will work
+  // when there are rename, creation, search text, it will work
   useEffect(() => {
     getFoldersAndFiles();
     if(rootFolderId == mainFolderId){
       setPath("");
     }
-  }, [rootFolderId, renamed, createdFolder])
+  }, [rootFolderId, renamed, createdFolder, searchText])
 
   return (
     <div>
@@ -334,14 +356,14 @@ export default function MyFileOrbis(props)
       {path.split("/").map((p, index) => {
         const eachFolderPath = path.split("/").slice(0, index+1).join("/") + "/";
         if(index !== 0){
-            return (
-                <div style={{display: 'inline-block'}}>
-                <Typography id={eachFolderPath} onClick={handleClickPath} sx={{ fontSize: 20, display: "inline", cursor: 'pointer'}}>
-                  {p} 
-                </Typography>
-                <KeyboardArrowRightTwoToneIcon/>
-                </div>
-            )
+          return (
+            <div style={{display: 'inline-block'}}>
+              <Typography id={eachFolderPath} onClick={handleClickPath} sx={{ fontSize: 20, display: "inline", cursor: 'pointer'}}>
+                {p} 
+              </Typography>
+              <KeyboardArrowRightTwoToneIcon/>
+            </div>
+          )  
         }
       })}
       {/* 
@@ -369,6 +391,7 @@ export default function MyFileOrbis(props)
             onClick={()=>{
               setClicked(false);
               setSelectedRow(null);
+              setFavorite(false);
               if(document.getElementById("folder - " + selectedRow) != null){
                 document.getElementById("folder - " + selectedRow).style.backgroundColor = "";
               }
@@ -402,7 +425,8 @@ export default function MyFileOrbis(props)
       </AppBar>
       {/* if the editing form (rename form) is open, it will work*/}
       {isEditing ? 
-        <FolderRenameForm 
+        <RenameForm 
+          rootFolderId={rootFolderId}
           folderOrFile={folderOrFile}
           id={selectedRow}
           setIsEditing={setIsEditing}
@@ -410,7 +434,19 @@ export default function MyFileOrbis(props)
           setRenamed={setRenamed}
         /> : null
       }
-      <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: "25px" }}>
+      {
+        loading ?
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '60vh'
+          }}
+        >
+          <CircularProgress />
+        </Box> :
+        <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: "25px" }}>
         <TableContainer sx={{ maxHeight: 480 }}>
           <Table stickyHeader aria-label="sticky table">
             <TableHead>
@@ -442,6 +478,7 @@ export default function MyFileOrbis(props)
                     onDoubleClick={() => {
                       setClicked(false);
                       setSelectedRow(null);
+                      setFavorite(false);
                       handleDoubleClickFolder(folder.id,folder.path);
                     }}
                     onClick={() => {
@@ -450,6 +487,7 @@ export default function MyFileOrbis(props)
                       if(selectedRow == null){
                         document.getElementById("folder - " + folder.id).style.backgroundColor = "#A9DDFF";
                         setSelectedRow(folder.id);
+                        setFavorite(folder.starred);
                         setClicked(true);
                       }
                       // if selected row id not equals to folder id (meaning another row selected)
@@ -466,6 +504,7 @@ export default function MyFileOrbis(props)
                           }
                           document.getElementById("folder - " + folder.id).style.backgroundColor = "#A9DDFF";
                           setSelectedRow(folder.id);
+                          setFavorite(folder.starred);
                           setClicked(true);
                         }
                         // if selected row id equals to folder id (meaning same row click)
@@ -495,6 +534,7 @@ export default function MyFileOrbis(props)
                           >
                             <FolderTwoToneIcon sx={{marginRight: 2}}/>
                             {folder.name} 
+                            {folder.starred ? <StarTwoToneIcon sx={{marginLeft: "10px"}} fontSize='small' /> : null}
                           </TableCell>
                         );
                       }
@@ -544,14 +584,43 @@ export default function MyFileOrbis(props)
                     key={file.id}
                     id={"file - " + file.id}      
                     onDoubleClick={() => {
+                      fetch("https://localhost:7043/files/stream/" + selectedRow)
+                      .then(response => {
+                        if (!response.ok) {
+                          return null;
+                        }
+                        return response.blob();
+                      })
+                      .then(blob => {
+                        if(blob != null){
+                          const fileUrl = URL.createObjectURL(blob);
+                          window.open(fileUrl, "_blank");
+                        } 
+                        else{
+                          alert("only pdf and images can be viewed on the browser!");
+                        }
+                      })
+                      .catch(error => {
+                        console.error('Error viewing the file:', error);
+                      });
                       
+                      fetch('https://localhost:7043/files/recent/' + selectedRow, {
+                        method: 'PUT',
+                      })
+                      .then((res) => res.json())
+                      .then((res) => {
+                        console.log(res);
+                      })
+                      .catch((err) => console.log(err));
                     }}
-                    onClick={() => {                      
+                      
+                    onClick={() => {                   
                       setfolderOrFile(1);
                       // if there is not any selected row, update selectedRow and clicked, change the background color 
                       if(selectedRow == null){
                         document.getElementById("file - " + file.id).style.backgroundColor = "#A9DDFF";
                         setSelectedRow(file.id);
+                        setFavorite(file.starred);
                         setClicked(true);
                       } 
                       // if selected row id not equals to folder id (meaning another row selected)
@@ -568,6 +637,7 @@ export default function MyFileOrbis(props)
                           }
                           document.getElementById("file - " + file.id).style.backgroundColor = "#A9DDFF";
                           setSelectedRow(file.id);
+                          setFavorite(file.starred);
                           setClicked(true);
                         } 
                         // if selected row id equals to folder id (meaning same row click)
@@ -593,6 +663,7 @@ export default function MyFileOrbis(props)
                           <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
                             <AttachFileIcon sx={{marginRight: 2}}/>
                             {file.name}
+                            {file.starred ? <StarTwoToneIcon sx={{marginLeft: "10px"}} fontSize='small'/> : null}
                           </TableCell>
                         );
                       }
@@ -633,7 +704,8 @@ export default function MyFileOrbis(props)
             </TableBody>
           </Table>
         </TableContainer>
-      </Paper>
+        </Paper>
+      }
     </div>  
   );
 }
