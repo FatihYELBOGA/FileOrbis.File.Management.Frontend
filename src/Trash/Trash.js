@@ -69,7 +69,7 @@ export default function Trash(props) {
 
   const handleRestoreClick = () => {
     alert("the parent folders can be in the trash so while file&folder is restored, be careful!");
-
+    
     // delete forever the file or folder
     if(folderOrFile == 0){
       fetch('https://localhost:7043/folders/restore/' + selectedRow, {
@@ -87,7 +87,7 @@ export default function Trash(props) {
         (result) => {
           setSelectedRow(null);
           setClicked(false);
-          alert("succesfully restored!");
+          alert("the folder succesfully restored!");
           getTrash();
         },
         (error) => {
@@ -111,7 +111,7 @@ export default function Trash(props) {
         (result) => {
           setSelectedRow(null);
           setClicked(false);
-          alert("succesfully restored!");
+          alert("the file succesfully restored!");
           getTrash();
         },
         (error) => {

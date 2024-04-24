@@ -101,6 +101,7 @@ export default function NewMenu(props) {
               <MenuList>
                 {/* new folder list item */}
                 <MenuItem 
+                  id='new-folder'
                   onClick={handleNewFolderMenu}
                   onMouseEnter={() => setHovered(0)}
                   onMouseLeave={() => setHovered(null)}
@@ -113,12 +114,14 @@ export default function NewMenu(props) {
                 </MenuItem>
                 {/* file upload list item */}
                 <input
+                  id='file-input'
                   type="file"
                   ref={inputRef}
                   style={{ display: 'none' }}
                   onChange={handleFileSelect}
                 />
                 <MenuItem 
+                  id='new-file'
                   onClick={handleFileUploadMenu}
                   onMouseEnter={() => setHovered(1)}
                   onMouseLeave={() => setHovered(null)}
@@ -132,6 +135,7 @@ export default function NewMenu(props) {
                 {/* Cancel button */}
                 <div  style={{ display: 'flex', justifyContent: 'center', marginBottom: 5, marginTop: 12}}>
                   <Button
+                    id='cancel-button'
                     type="button"
                     variant="contained"
                     onClick={() => {setNewMenuItem(false);}}

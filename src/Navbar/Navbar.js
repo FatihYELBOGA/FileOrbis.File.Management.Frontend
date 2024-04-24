@@ -67,6 +67,7 @@ function Navbar(props)
   };
 
   const handleProfile = () => {
+
   }
 
   const handleLogOut = () => {
@@ -89,7 +90,7 @@ function Navbar(props)
       />
       {/* new menu */}
       <List>
-          <ListItem disablePadding>
+          <ListItem disablePadding id='new'>
             <ListItemButton 
                onClick={() => handleNewButtonClick()} 
             >
@@ -104,7 +105,7 @@ function Navbar(props)
       {/* my fileorbis, recent menus */}
       <List>
         {['My FileOrbis', 'Recent'].map((text, index) => (
-          <ListItem key={text} disablePadding>
+          <ListItem id={text} key={text} disablePadding>
             <ListItemButton 
               sx={{ 
                 backgroundColor: activeMenuItem === index + 1 ? '#A9DDFF' : 'inherit',
@@ -129,7 +130,7 @@ function Navbar(props)
       {/* shared, starred, trashed menus */}
       <List>
         {['Starred', 'Trash'].map((text, index) => (
-          <ListItem key={text} disablePadding>
+          <ListItem id={text} key={text} disablePadding>
             <ListItemButton 
               sx={{ 
                 backgroundColor: activeMenuItem === index + 3 ? '#A9DDFF' : 'inherit',

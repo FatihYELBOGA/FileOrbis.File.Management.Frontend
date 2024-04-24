@@ -101,7 +101,7 @@ function NewFolderForm(props) {
               margin="normal"
               required
               fullWidth
-              id="newfolder"
+              id="new-folder-text"
               label="New folder"
               name="newfolder"
               autoFocus
@@ -129,6 +129,7 @@ function NewFolderForm(props) {
               </Button>
               {/* OK button */}
               <Button
+                id='OK-button'
                 type="button"
                 variant="contained"
                 onClick={handleOKClick}

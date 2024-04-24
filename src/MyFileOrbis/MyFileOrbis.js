@@ -145,7 +145,7 @@ export default function MyFileOrbis(props)
           setSelectedRow(null);
           setFavorite(false);
           setClicked(false);
-          alert("folder succesfully trashed");
+          alert("the folder succesfully trashed!");
           getFoldersAndFiles();
         },
         (error) => {
@@ -170,7 +170,7 @@ export default function MyFileOrbis(props)
           setSelectedRow(null);
           setFavorite(false);
           setClicked(false);
-          alert("file succesfully trashed");
+          alert("the file succesfully trashed!");
           getFoldersAndFiles();
         },
         (error) => {
@@ -182,31 +182,21 @@ export default function MyFileOrbis(props)
 
   // before download, get file&folder name
   // download operations with file& folder id
-  const handleDownload = () => {
-    if(folderOrFile == 1)
-    {
-      var fileName = "";
-      fetch('https://localhost:7043/files/name/' + selectedRow)
-      .then(response => {
-        if (!response.ok) {
+  const handleDownload = async () => {
+    if (folderOrFile == 1) {
+      try {
+        let fileName = "";
+        const response1 = await fetch('https://localhost:7043/files/name/' + selectedRow);
+        if (!response1.ok) {
           throw new Error("Server error");
         }
-        return response.text();
-      })
-      .then(data => {
-        fileName = data;
-      })
-      .catch(error => {
-        console.error(error);
-      });
-      fetch(`https://localhost:7043/files/download/` + selectedRow)
-      .then(response => {
-        if (!response.ok) {
+        fileName = await response1.text();
+  
+        const response2 = await fetch(`https://localhost:7043/files/download/` + selectedRow);
+        if (!response2.ok) {
           throw new Error('Server error!');
         }
-        return response.blob();
-      })
-      .then(blob => {
+        const blob = await response2.blob();
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -214,50 +204,36 @@ export default function MyFileOrbis(props)
         document.body.appendChild(link);
         link.click();
         alert("file downloaded successfully!");
-      })
-      .catch(error => {
+      } catch (error) {
         console.error(error);
-      });
-    } 
-    else if(folderOrFile == 0)
-    {      
-      var folderName = "";
-      fetch('https://localhost:7043/folders/name/' + selectedRow)
-      .then(response => {
-        if (!response.ok) {
+      }
+    } else if (folderOrFile == 0) {
+      try {
+        let folderName = "";
+        const response3 = await fetch('https://localhost:7043/folders/name/' + selectedRow);
+        if (!response3.ok) {
           throw new Error("Server error");
         }
-        return response.text();
-      })
-      .then(data => {
-        folderName = data;
-      })
-      .catch(error => {
-        console.error(error);
-      });
+        folderName = await response3.text();
   
-      const endpointUrl = 'https://localhost:7043/folders/zip/'+ selectedRow;
-
-      fetch(endpointUrl)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Server error');
-          }
-          return response.blob();
-        })
-        .then(blob => {
-          const url = window.URL.createObjectURL(new Blob([blob]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', folderName + ".zip");
-          document.body.appendChild(link);
-          link.click();
-          link.parentNode.removeChild(link);
-        })
-        .catch(error => {
-          console.error(error);
-        });
+        const endpointUrl = 'https://localhost:7043/folders/zip/'+ selectedRow;
+        const response4 = await fetch(endpointUrl);
+        if (!response4.ok) {
+          throw new Error('Server error');
+        }
+        const blob = await response4.blob();
+        const url = window.URL.createObjectURL(new Blob([blob]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', folderName + ".zip");
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+        alert("folder downloaded successfully!");
+      } catch (error) {
+        console.error(error);
       }
+    }
   };
 
   // check whether file&folder is starred or not
@@ -402,18 +378,22 @@ export default function MyFileOrbis(props)
           />  
           <span style={{cursor: 'default'}}>1 selected</span>
           <DriveFileRenameOutlineTwoToneIcon 
+            id="rename-button"
             sx={{marginLeft:'50px', marginRight: '25px', cursor:'pointer' }} 
             onClick={()=>{ setIsEditing(true); }}
           />
           <DownloadTwoToneIcon 
+            id="download-button"
             sx={{ marginRight: '25px', cursor:'pointer' }} 
             onClick={handleDownload}
           />
           <StarRateTwoToneIcon 
+            id="star-button"
             sx={{ marginRight: '25px', cursor:'pointer' }} 
             onClick={handleStar}
           />
           <DeleteTwoToneIcon 
+            id="trash-button"
             sx={{cursor:'pointer'}} 
             onClick={handleSentToTrash}
           />
@@ -432,6 +412,7 @@ export default function MyFileOrbis(props)
           setIsEditing={setIsEditing}
           renamed={renamed}
           setRenamed={setRenamed}
+          setClicked={setClicked}
         /> : null
       }
       {
@@ -534,7 +515,7 @@ export default function MyFileOrbis(props)
                           >
                             <FolderTwoToneIcon sx={{marginRight: 2}}/>
                             {folder.name} 
-                            {folder.starred ? <StarTwoToneIcon sx={{marginLeft: "10px"}} fontSize='small' /> : null}
+                            {folder.starred ? <StarTwoToneIcon id="star-icon" sx={{marginLeft: "10px"}} fontSize='small' /> : null}
                           </TableCell>
                         );
                       }
@@ -663,7 +644,7 @@ export default function MyFileOrbis(props)
                           <TableCell key={column.id} align={column.align} sx={{cursor: 'default'}}>
                             <AttachFileIcon sx={{marginRight: 2}}/>
                             {file.name}
-                            {file.starred ? <StarTwoToneIcon sx={{marginLeft: "10px"}} fontSize='small'/> : null}
+                            {file.starred ? <StarTwoToneIcon id="star-icon" sx={{marginLeft: "10px"}} fontSize='small'/> : null}
                           </TableCell>
                         );
                       }

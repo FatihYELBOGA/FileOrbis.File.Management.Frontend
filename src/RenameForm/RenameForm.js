@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import './Rename.css'
 
-export default function RenameForm({ rootFolderId, folderOrFile, id, setIsEditing, renamed, setRenamed }) {
+export default function RenameForm({ rootFolderId, folderOrFile, id, setIsEditing, renamed, setRenamed, setClicked }) {
     
   // newName: represents new file&folder name (text field)
   const [newName, setNewName] = useState("");
@@ -44,7 +44,7 @@ export default function RenameForm({ rootFolderId, folderOrFile, id, setIsEditin
             .then((res) => {
               console.log(res);
               if(res == true){
-                alert("the " + folders_or_file + " name: '" + newName + "' is already exist!");
+                alert("the folder name: '" + newName + "' is already exist!");
               } 
               else {
                // rename file&folder request
@@ -63,12 +63,9 @@ export default function RenameForm({ rootFolderId, folderOrFile, id, setIsEditin
                   if(res !== null){
                     // display the successful message
                     // close the editing form (setIsEditing) and render the page (setRenamed)
-                    if(folderOrFile == 0){
-                      alert("folder name changed succesfully!");
-                    } else {
-                      alert("file name changed succesfully!");
-                    }
+                    alert("folder name changed succesfully!");
                     setIsEditing(false);
+                    setClicked(false);
                     if(renamed){
                       setRenamed(false);
                     } else {
@@ -107,7 +104,7 @@ export default function RenameForm({ rootFolderId, folderOrFile, id, setIsEditin
             .then((res) => {
               console.log(res);
               if(res == true){
-                alert("the " + folders_or_file + " name: '" + newName + "." + extension + "' is already exist!");
+                alert("the file name: '" + newName + "." + extension + "' is already exist!");
               } else {
                 // rename file&folder request
                 fetch("https://localhost:7043/" + folders_or_file + "/rename/" + id + "?name=" + newName, {
@@ -125,12 +122,9 @@ export default function RenameForm({ rootFolderId, folderOrFile, id, setIsEditin
                   if(res !== null){
                     // display the successful message
                     // close the editing form (setIsEditing) and render the page (setRenamed)
-                    if(folderOrFile == 0){
-                     alert("folder name changed succesfully!");
-                    } else {
-                      alert("file name changed succesfully!");
-                    }
+                    alert("file name changed succesfully!");
                     setIsEditing(false);
+                    setClicked(false);
                     if(renamed){
                       setRenamed(false);
                     } else {
@@ -174,7 +168,7 @@ export default function RenameForm({ rootFolderId, folderOrFile, id, setIsEditin
               margin="normal"
               required
               fullWidth
-              id="rename"
+              id="rename-text"
               label="New name"
               name="rename"
               autoFocus
@@ -202,6 +196,7 @@ export default function RenameForm({ rootFolderId, folderOrFile, id, setIsEditin
               </Button>
               {/* OK button */}
               <Button
+                id="OK-button"
                 type="button"
                 variant="contained"
                 onClick={onSubmit}
