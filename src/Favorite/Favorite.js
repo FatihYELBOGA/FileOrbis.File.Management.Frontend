@@ -98,7 +98,7 @@ export default function Favorite(props){
           setFileId(null);
           setFolderId(null);
           setClicked(false);
-          alert("starred folder succesfully removed!");
+          alert("the starred folder succesfully removed!");
           getFavorites();
         },
         (error) => {
@@ -124,7 +124,7 @@ export default function Favorite(props){
           setFileId(null);
           setFolderId(null);
           setClicked(false);
-          alert("starred file succesfully removed!");
+          alert("the starred file succesfully removed!");
           getFavorites();
         },
         (error) => {
@@ -305,10 +305,12 @@ export default function Favorite(props){
           />  
           <span style={{cursor: 'default'}}>1 selected</span>
           <StarBorderPurple500Icon 
+            id="remove-star-button"
             sx={{marginLeft:'50px', marginRight: '25px', cursor:'pointer' }} 
             onClick={handleRemoveFavorite}
           />
           <ArrowCircleRightTwoToneIcon 
+            id="location-button"
             sx={{cursor:'pointer'}} 
             onClick={handleGoInto}
           />

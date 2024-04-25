@@ -121,6 +121,7 @@ function NewFolderForm(props) {
             >
               {/* Cancel button */}
               <Button
+                id="cancel-button"
                 type="button"
                 variant="contained"
                 onClick={handleCancelClick}

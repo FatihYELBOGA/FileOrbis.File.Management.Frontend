@@ -324,7 +324,7 @@ export default function MyFileOrbis(props)
   return (
     <div>
       {/* constant "my fileorbis" header path */}
-      <Typography onClick={handleClickMainFolder} sx={{fontSize: 20, display: "inline", cursor: 'pointer'}}>
+      <Typography id="my-fileorbis" onClick={handleClickMainFolder} sx={{fontSize: 20, display: "inline", cursor: 'pointer'}}>
         {mainFolderName} 
       </Typography>
       <KeyboardArrowRightTwoToneIcon/>

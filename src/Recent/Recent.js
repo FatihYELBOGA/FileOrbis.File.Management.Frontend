@@ -219,10 +219,12 @@ export default function Recent(props){
           />  
           <span style={{cursor: 'default'}}>1 selected</span>
           <ImportContactsTwoToneIcon 
+            id="open-button"
             sx={{marginLeft:'50px', marginRight: '25px', cursor:'pointer' }} 
             onClick={handleOpenFile}
           />
-          <ArrowCircleRightTwoToneIcon 
+          <ArrowCircleRightTwoToneIcon
+            id="location-button" 
             sx={{cursor:'pointer'}} 
             onClick={checkInTrash}
           />
@@ -358,7 +360,7 @@ export default function Recent(props){
                         var counter = 0;
                         var paths = file.path.split("/");
                         var newPath = "My FileOrbis"
-                        for(let i=0; i<paths.length-1 ;i++){
+                        for(let i=0; i<paths.length; i++){
                           if(i != 0){
                             newPath = newPath + "/" + paths[counter+1];
                             counter++;

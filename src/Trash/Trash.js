@@ -87,7 +87,7 @@ export default function Trash(props) {
         (result) => {
           setSelectedRow(null);
           setClicked(false);
-          alert("the folder succesfully restored!");
+          alert("the folder successfully restored!");
           getTrash();
         },
         (error) => {
@@ -111,7 +111,7 @@ export default function Trash(props) {
         (result) => {
           setSelectedRow(null);
           setClicked(false);
-          alert("the file succesfully restored!");
+          alert("the file successfully restored!");
           getTrash();
         },
         (error) => {
@@ -139,7 +139,7 @@ export default function Trash(props) {
         (result) => {
           setSelectedRow(null);
           setClicked(false);
-          alert("folder succesfully removed!");
+          alert("the folder successfully removed!");
           getTrash();
         },
         (error) => {
@@ -163,7 +163,7 @@ export default function Trash(props) {
         (result) => {
           setSelectedRow(null);
           setClicked(false);
-          alert("file succesfully removed!");
+          alert("the file successfully removed!");
           getTrash();
         },
         (error) => {
@@ -257,10 +257,12 @@ export default function Trash(props) {
           />  
           <span style={{cursor: 'default'}}>1 selected</span>
           <RestorePageTwoToneIcon 
+            id="restore-button"
             sx={{marginLeft:'50px', marginRight: '25px', cursor:'pointer' }} 
             onClick={handleRestoreClick}
           />
-          <DeleteForeverTwoToneIcon 
+          <DeleteForeverTwoToneIcon
+            id="delete-forever-button" 
             sx={{cursor:'pointer'}} 
             onClick={handleDeleteForeverClick}
           />
@@ -401,7 +403,7 @@ export default function Trash(props) {
                       var counter = 0;
                       var paths = folder.path.split("/");
                       var newPath = "My FileOrbis"
-                      for(let i=0; i<paths.length-1 ;i++){
+                      for(let i=0; i<paths.length-1; i++){
                         if(i != 0){
                           newPath = newPath + "/" + paths[counter+1];
                           counter++;
@@ -511,7 +513,7 @@ export default function Trash(props) {
                       var counter = 0;
                       var paths = file.path.split("/");
                       var newPath = "My FileOrbis"
-                      for(let i=0; i<paths.length-1 ;i++){
+                      for(let i=0; i<paths.length; i++){
                         if(i != 0){
                           newPath = newPath + "/" + paths[counter+1];
                           counter++;
